@@ -14,6 +14,13 @@ RUN rm /etc/nginx/sites-enabled/default
 RUN rm -f /etc/service/nginx/down
 RUN rm -f /etc/service/redis/down
 
+RUN apt-get update
+RUN apt-get install -y wget git nano curl
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+RUN apt-get update
+RUN apt-get install -y postgresql
+
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN gem install rails
@@ -33,5 +40,7 @@ RUN chown -R app:app /home/app
 
 RUN echo "app ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-CMD ["/sbin/my_init"]
+ADD . /home/app/webapp/
+RUN su - app -c "cd /home/app/webapp && sudo bundle install"
 
+CMD ["/sbin/my_init"]
