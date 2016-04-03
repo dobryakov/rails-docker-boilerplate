@@ -1,0 +1,39 @@
+# run as:
+# RAILS_ENV=development USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose build
+# RAILS_ENV=development USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose up -d
+# docker exec -t -i {your-container-name}_app_1 bash -l
+# su - app
+# cd ~/webapp
+# sudo bundle install
+# rake db:create
+# rake db:migrate
+# rake test
+
+version: '2'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        uid: "${USER_ID}"
+        gid: "${GROUP_ID}"
+    volumes:
+      - .:/home/app/webapp
+      - ./docker/webapp-${RAILS_ENV}.conf:/etc/nginx/sites-enabled/webapp.conf
+      - .env:/home/app/webapp/.env
+    ports:
+      - "19090:80"
+    links:
+      - db
+    depends_on:
+      - db
+    environment:
+      - RAILS_ENV=${RAILS_ENV}
+      - NO_PRY=1
+
+  db:
+    image: postgres:9.4
+    ports:
+      - "5432"
+
